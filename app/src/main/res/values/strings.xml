@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">חמ\"ל</string>
+    <string name="post_title">פוסט</string>
+    <string name="read_more"><![CDATA[להמשך קריאה >]]></string>
+    <string name="comments_count">%1$s תגובות</string>
+    <string name="just_now">הרגע</string>
+    <string name="second_ago">לפני שנייה</string>
+    <string name="minute_ago">לפני דקה</string>
+    <string name="hour_ago">לפני שעה</string>
+    <string name="day_ago">לפני יום</string>
+    <string name="seconds_ago">לפני %1$s שניות</string>
+    <string name="minutes_ago">לפני %1$s דקות</string>
+    <string name="hours_ago">לפני %1$s שעות</string>
+    <string name="days_ago">לפני %1$s ימים</string>
+    <string name="loading">טוען…</string>
+    <string name="fetching_error">אין חיבור לאינטרנט</string>
+    <string name="video_screen_title">סרטון</string>
+    <string name="go_back">חזור אחורה</string>
+    <string name="play_audio">נגן שמע</string>
+    <string name="stop_audio">עצור שמע</string>
+    <string name="toggle_full_screen">שנה מסך מלא</string>
+    <string name="play_video">נגן סרטון</string>
+    <string name="post_time">%1$s - %2$s</string>
+    <string name="duration_format">%02d:%02d</string>
+    <string name="picture">תמונה</string>
+    <string name="likes">לייקים</string>
+    <string name="replies">תגובות</string>
+    <string name="share">שיתוף</string>
+    <string name="new_posts">פוסטים חדשים</string>
+</resources>
