@@ -53,7 +53,7 @@ fun PostBody(
             text = (postBody[0] as PostBody.Title).value.trim(),
             style = MaterialTheme.typography.titleSmall,
         )
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_minimal)))
+        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
         Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
             var characters = 0
             postBody.drop(1).forEach { content ->
@@ -77,7 +77,7 @@ fun PostBody(
                             )
 
                             characters += content.value.length
-                            if (characters > 120) {
+                            if (characters >= 120) {
                                 Text(
                                     text = stringResource(R.string.read_more),
                                     color = MaterialTheme.colorScheme.secondary
@@ -126,7 +126,7 @@ fun PostBody(
                     }
 
                     is PostBody.Embed -> {
-                        EmbedWebView(content.value)
+                        EmbedWebView(content.value, modifier = Modifier.fillMaxWidth())
                     }
 
                     else -> {

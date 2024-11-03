@@ -18,11 +18,19 @@ fun EmbedWebView(htmlContent: String, modifier: Modifier = Modifier) {
         WebView(context).apply {
             webViewClient = WebViewClient()
             settings.javaScriptEnabled = true
+            settings.loadWithOverviewMode = true
         }
     }
 
     LaunchedEffect(webView) {
-        webView.loadData(htmlContent, "text/html", "utf-8")
+        webView.loadData(
+            """
+                <html>
+                    <head><style>iframe {max-width: 100%;}</style></head>
+                    <body>$htmlContent</body>
+                </html>
+            """, "text/html", "utf-8"
+        )
     }
 
     AndroidView(

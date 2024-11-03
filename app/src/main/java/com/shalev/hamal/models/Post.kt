@@ -16,5 +16,6 @@ data class Post(
     val comments: List<Comment>?,
     val likes: Likes,
     val metaData: PostMetadata,
-    val hashtags: List<Hashtag>
+    val hashtags: List<Hashtag>,
+    val stampData: PostStampData
 )

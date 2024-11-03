@@ -34,15 +34,15 @@ fun Posts(
     onScrollEnd: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var manuallyPlayedVideoId by remember { mutableStateOf<String?>(null) }
+    var manuallyPlayedMediaId by remember { mutableStateOf<String?>(null) }
     var currentlyPlayingItem by remember { mutableStateOf<Pair<String, PostBody>?>(null) }
 
-    LaunchedEffect(listState, posts, manuallyPlayedVideoId, isFocused, exoPlayer) {
+    LaunchedEffect(listState, posts, manuallyPlayedMediaId, isFocused, exoPlayer) {
         snapshotFlow { listState.layoutInfo }
             .collect { layoutInfo ->
                 val nextPlayingItem =
                     if (isFocused) {
-                        getCurrentlyPlayingItem(layoutInfo, posts, manuallyPlayedVideoId)
+                        getCurrentlyPlayingItem(layoutInfo, posts, manuallyPlayedMediaId)
                     } else null
 
                 if (nextPlayingItem != currentlyPlayingItem) {
@@ -84,7 +84,7 @@ fun Posts(
                     if (currentlyPlayingItem?.first == post.id) currentlyPlayingItem?.second?.id
                     else null,
                     exoPlayer = exoPlayer,
-                    onPlayMedia = { manuallyPlayedVideoId = it },
+                    onPlayMedia = { manuallyPlayedMediaId = it },
                     onVideoFullScreen = onVideoFullScreen,
                     modifier = Modifier.fillParentMaxWidth()
                 )

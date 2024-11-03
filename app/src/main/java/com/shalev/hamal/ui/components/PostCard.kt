@@ -36,13 +36,13 @@ fun PostCard(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val instant = remember {
-        LocalDateTime.ofInstant(
+    val time = remember {
+        val instant = LocalDateTime.ofInstant(
             Instant.ofEpochMilli(publishedAt),
             TimeZone.getDefault().toZoneId()
         )
+        instant.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
     }
-    val time = instant.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
     val context = LocalContext.current
 
     Card(modifier = modifier) {

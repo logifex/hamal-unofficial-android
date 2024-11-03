@@ -85,9 +85,9 @@ fun PostPodcast(
     }
 
     AudioPlayer(
-        isPlaying,
-        currentPosition,
-        duration,
+        isPlaying = isPlaying,
+        position = currentPosition,
+        duration = duration,
         onPlayClick = {
             if (!shouldPlay) {
                 onPlayClick(id)
