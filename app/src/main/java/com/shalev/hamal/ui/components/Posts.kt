@@ -105,12 +105,12 @@ private fun getCurrentlyPlayingItem(
     val visiblePlayableMedia = itemsFromCenter.mapNotNull { item ->
         val post = posts[item.index]
         val firstMedia = post.body.firstOrNull { it !is PostBody.Title && it !is PostBody.Text }
-        firstMedia.takeIf { (firstMedia is PostBody.Video || firstMedia is PostBody.Podcast) }
+        firstMedia.takeIf { (it is PostBody.Video || it is PostBody.Podcast) }
             ?.let { media ->
                 post.id to media
             }
     }
 
     return visiblePlayableMedia.find { it.second.id == manuallyPlayedVideoId }
-        ?: visiblePlayableMedia.filterIsInstance<Pair<String, PostBody.Video>>().firstOrNull()
+        ?: visiblePlayableMedia.firstOrNull { it.second is PostBody.Video }
 }

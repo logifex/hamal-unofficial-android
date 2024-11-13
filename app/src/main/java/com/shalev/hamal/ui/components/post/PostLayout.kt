@@ -44,7 +44,7 @@ fun PostLayout(
         publishedAt = post.publishedAt,
         onContentClick = onContentClick,
         content = {
-            if (post.stampData.text.isNotEmpty()) {
+            if (post.stampData.isActive) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

@@ -38,6 +38,13 @@ fun PostBody(
     modifier: Modifier = Modifier
 ) {
     var delayPassed by remember { mutableStateOf(false) }
+    val body = remember(postBody, isExpanded) {
+        if (isExpanded) postBody.drop(1)
+        else {
+            val texts = postBody.filterIsInstance<PostBody.Text>()
+            postBody.drop(1).firstOrNull { it !is PostBody.Text }?.let { texts + it } ?: texts
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (!isExpanded) {
@@ -56,7 +63,7 @@ fun PostBody(
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
         Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
             var characters = 0
-            postBody.drop(1).forEach { content ->
+            body.forEach { content ->
                 when (content) {
                     is PostBody.Title -> {}
 
@@ -132,10 +139,6 @@ fun PostBody(
                     else -> {
                         Text(content.value.toString())
                     }
-                }
-
-                if (!isExpanded && content !is PostBody.Title && content !is PostBody.Text) {
-                    return
                 }
             }
         }

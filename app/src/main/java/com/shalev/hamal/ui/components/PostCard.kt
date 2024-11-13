@@ -55,7 +55,11 @@ fun PostCard(
             ProfilePicture(avatar, modifier = Modifier.optionalClickable(onContentClick))
             Spacer(Modifier.width(dimensionResource(R.dimen.padding_small)))
             Column(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.optionalClickable(onContentClick)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .optionalClickable(onContentClick)
+                ) {
                     Column {
                         Text(
                             text = stringResource(
@@ -75,7 +79,7 @@ fun PostCard(
                         content()
                     }
                 }
-                if (footerContent != null) {
+                footerContent?.let {
                     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
                     Column {
                         footerContent()
