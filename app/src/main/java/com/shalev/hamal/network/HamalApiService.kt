@@ -10,6 +10,6 @@ interface HamalApiService {
     @GET("item")
     suspend fun getItems(@Query("from") from: Long?): PostsApiResponse
 
-    @GET("item/{id}")
+    @GET("item/v2/{id}")
     suspend fun getItem(@Path("id") id: String): PostApiResponse
 }

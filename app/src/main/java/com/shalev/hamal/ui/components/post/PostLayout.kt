@@ -22,6 +22,7 @@ import com.shalev.hamal.R
 import com.shalev.hamal.models.Post
 import com.shalev.hamal.ui.components.PostCard
 import com.shalev.hamal.utils.Constants
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -48,7 +49,7 @@ fun PostLayout(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color(android.graphics.Color.parseColor(post.stampData.color)))
+                        .background(Color(post.stampData.color.toColorInt()))
                 ) {
                     Text(
                         text = post.stampData.text,

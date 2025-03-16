@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.data.PostUiState
+import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.ui.components.comment.CommentCount
 import com.shalev.hamal.ui.components.post.PostLayout
 import com.shalev.hamal.ui.components.comment.CommentThread
@@ -68,10 +69,19 @@ fun PostScreen(
 
     when (postUiState.value) {
         is PostUiState.Loading -> LoadingIndicator(modifier = Modifier.fillMaxSize())
-        is PostUiState.Error -> Message(
-            text = stringResource(R.string.fetching_error),
-            modifier = Modifier.fillMaxSize()
-        )
+        is PostUiState.Error -> {
+            val state = postUiState.value as PostUiState.Error
+            Message(
+                text = when (state.error) {
+                    is FetchingError.NetworkError -> stringResource(R.string.network_error)
+                    is FetchingError.HttpError -> stringResource(
+                        R.string.http_error,
+                        state.error.code
+                    )
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
 
         is PostUiState.Success -> {
             val post = (postUiState.value as PostUiState.Success).post
@@ -102,7 +112,7 @@ fun PostScreen(
                     }
                 }
                 post.comments?.let {
-                    items(items = post.comments.reversed()) { comment ->
+                    items(items = post.comments) { comment ->
                         CommentThread(comment)
                     }
                 }

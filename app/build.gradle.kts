@@ -13,8 +13,8 @@ android {
         applicationId = "com.shalev.hamal"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -64,7 +64,7 @@ dependencies {
     implementation (libs.androidx.media3.ui)
     implementation (libs.androidx.media3.common)
     implementation(libs.androidx.media3.exoplayer.hls)
-    implementation ("io.socket:socket.io-client:2.1.1") {
+    implementation ("io.socket:socket.io-client:2.1.2") {
         exclude(group = "org.json", module = "json")
     }
     testImplementation(libs.junit)

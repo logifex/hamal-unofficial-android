@@ -13,7 +13,8 @@
     <string name="hours_ago">לפני %1$s שעות</string>
     <string name="days_ago">לפני %1$s ימים</string>
     <string name="loading">טוען…</string>
-    <string name="fetching_error">אין חיבור לאינטרנט</string>
+    <string name="network_error">אין חיבור לאינטרנט</string>
+    <string name="http_error">שגיאה בטעינת הנתונים\nקוד שגיאה %1$s</string>
     <string name="video_screen_title">סרטון</string>
     <string name="go_back">חזור אחורה</string>
     <string name="play_audio">נגן שמע</string>

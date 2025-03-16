@@ -10,6 +10,7 @@ import com.shalev.hamal.HamalApplication
 import com.shalev.hamal.data.HomeUiState
 import com.shalev.hamal.data.PostRepository
 import com.shalev.hamal.data.JsonProvider
+import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.models.Post
 import com.shalev.hamal.utils.Constants
 import io.socket.emitter.Emitter
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import retrofit2.HttpException
 import java.io.IOException
 
 class HomePostsViewModel(
@@ -88,7 +90,9 @@ class HomePostsViewModel(
                 try {
                     HomeUiState.Success(postRepository.getPosts(), emptyList())
                 } catch (e: IOException) {
-                    HomeUiState.Error
+                    HomeUiState.Error(FetchingError.NetworkError)
+                } catch (e: HttpException) {
+                    HomeUiState.Error(FetchingError.HttpError(e.code()))
                 }
             refreshing.value = false
         }
@@ -107,7 +111,9 @@ class HomePostsViewModel(
                         val newPosts = postRepository.getPosts(prevState.posts.last().publishedAt)
                         HomeUiState.Success(prevState.posts.plus(newPosts), prevState.newPosts)
                     } catch (e: IOException) {
-                        HomeUiState.Error
+                        HomeUiState.Error(FetchingError.NetworkError)
+                    } catch (e: HttpException) {
+                        HomeUiState.Error(FetchingError.HttpError(e.code()))
                     }
                 } else {
                     prevState

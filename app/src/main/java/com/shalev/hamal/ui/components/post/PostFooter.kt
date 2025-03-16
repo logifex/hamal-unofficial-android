@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.core.content.ContextCompat
 import com.shalev.hamal.R
 import com.shalev.hamal.ui.components.FooterTextIcon
 
@@ -64,11 +63,7 @@ fun onShareClick(shareUrl: String, context: Context) {
         type = "text/plain"
     }
     val shareIntent = Intent.createChooser(sendIntent, null)
-    ContextCompat.startActivity(
-        context,
-        shareIntent,
-        null
-    )
+    context.startActivity(shareIntent)
 }
 
 @Preview

@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -24,6 +25,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.data.HomeUiState
+import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.ui.components.Posts
 import com.shalev.hamal.ui.components.PostsNotification
 import com.shalev.hamal.ui.components.LoadingIndicator
@@ -54,10 +56,18 @@ fun HomeScreen(
         val newPosts = (homeUiState.value as HomeUiState.Success).newPosts
 
         if (newPosts.isNotEmpty()) {
+            LaunchedEffect(Unit) {
+                snapshotFlow { listState.firstVisibleItemIndex }
+                    .collect {
+                        if (it == 0) {
+                            homeViewModel.resetNewPosts()
+                        }
+                    }
+            }
+
             LaunchedEffect(newPosts) {
                 if (listState.firstVisibleItemIndex <= 1 && listState.firstVisibleItemScrollOffset <= 0) {
                     listState.scrollToItem(0)
-                    homeViewModel.resetNewPosts()
                 }
             }
 
@@ -92,12 +102,21 @@ fun HomeScreen(
     ) {
         when (homeUiState.value) {
             is HomeUiState.Loading -> LoadingIndicator(modifier = Modifier.fillMaxSize())
-            is HomeUiState.Error -> Message(
-                stringResource(R.string.fetching_error),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-            )
+            is HomeUiState.Error -> {
+                val state = homeUiState.value as HomeUiState.Error
+                Message(
+                    text = when (state.error) {
+                        is FetchingError.NetworkError -> stringResource(R.string.network_error)
+                        is FetchingError.HttpError -> stringResource(
+                            R.string.http_error,
+                            state.error.code
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                )
+            }
 
             is HomeUiState.Success -> {
                 val state = homeUiState.value as HomeUiState.Success

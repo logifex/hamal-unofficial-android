@@ -9,6 +9,7 @@ import com.shalev.hamal.HamalApplication
 import com.shalev.hamal.data.PostRepository
 import com.shalev.hamal.data.JsonProvider
 import com.shalev.hamal.data.PostUiState
+import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.models.Post
 import com.shalev.hamal.utils.Constants
 import io.socket.emitter.Emitter
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
 import org.json.JSONObject
+import retrofit2.HttpException
 
 class PostViewModel(
     private val id: String,
@@ -69,7 +71,9 @@ class PostViewModel(
             _uiState.value = try {
                 PostUiState.Success(postRepository.getPost(id))
             } catch (e: IOException) {
-                PostUiState.Error
+                PostUiState.Error(FetchingError.NetworkError)
+            } catch (e: HttpException) {
+                PostUiState.Error(FetchingError.HttpError(e.code()))
             }
         }
     }

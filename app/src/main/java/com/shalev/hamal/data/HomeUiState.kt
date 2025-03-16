@@ -1,5 +1,6 @@
 package com.shalev.hamal.data
 
+import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.models.Post
 
 sealed interface HomeUiState {
@@ -9,5 +10,5 @@ sealed interface HomeUiState {
     ) : HomeUiState
 
     data object Loading : HomeUiState
-    data object Error : HomeUiState
+    data class Error(val error: FetchingError) : HomeUiState
 }

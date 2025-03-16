@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -24,7 +23,8 @@ import com.shalev.hamal.models.Post
 
 @Composable
 fun PostsNotification(posts: List<Post>, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Row(verticalAlignment = Alignment.CenterVertically,
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .background(MaterialTheme.colorScheme.primary, CircleShape)
             .padding(
@@ -46,10 +46,10 @@ fun PostsNotification(posts: List<Post>, onClick: () -> Unit, modifier: Modifier
                         url = post.writer.avatar,
                         description = post.writer.displayName,
                         modifier = Modifier.border(
-                                dimensionResource(R.dimen.border_medium),
-                                MaterialTheme.colorScheme.onPrimary,
-                                CircleShape
-                            )
+                            dimensionResource(R.dimen.border_medium),
+                            MaterialTheme.colorScheme.onPrimary,
+                            CircleShape
+                        )
                     )
                 }
             }
