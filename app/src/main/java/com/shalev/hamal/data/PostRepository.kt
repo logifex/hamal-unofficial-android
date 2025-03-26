@@ -6,6 +6,7 @@ import com.shalev.hamal.network.HamalApiService
 interface PostRepository {
     suspend fun getPosts(from: Long? = null): List<Post>
     suspend fun getPost(id: String): Post
+    suspend fun getPostBySlug(slug: String): Post
 }
 
 class NetworkPostRepository(private val hamalApiService: HamalApiService) : PostRepository {
@@ -15,5 +16,9 @@ class NetworkPostRepository(private val hamalApiService: HamalApiService) : Post
 
     override suspend fun getPost(id: String): Post {
         return hamalApiService.getItem(id).item
+    }
+
+    override suspend fun getPostBySlug(slug: String): Post {
+        return hamalApiService.getItemBySlug(slug).item
     }
 }

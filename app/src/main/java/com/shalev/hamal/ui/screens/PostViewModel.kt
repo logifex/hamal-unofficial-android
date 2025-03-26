@@ -23,7 +23,8 @@ import org.json.JSONObject
 import retrofit2.HttpException
 
 class PostViewModel(
-    private val id: String,
+    private val id: String?,
+    private val slug: String?,
     private val postRepository: PostRepository,
     application: HamalApplication
 ) : AndroidViewModel(application) {
@@ -36,26 +37,22 @@ class PostViewModel(
         val data = args[0] as JSONObject
         val post = JsonProvider.json.decodeFromString(Post.serializer(), data.toString())
 
-        if (post.id == id) {
-            _uiState.update { prevState ->
-                if (prevState is PostUiState.Success) {
-                    PostUiState.Success(post.copy(comments = prevState.post.comments))
-                } else {
-                    prevState
-                }
+        _uiState.update { prevState ->
+            if (prevState is PostUiState.Success && post.id == prevState.post.id) {
+                PostUiState.Success(post.copy(comments = prevState.post.comments))
+            } else {
+                prevState
             }
         }
     }
 
     private val onItemDelete = Emitter.Listener { args ->
         val data = args[0] as String
-        if (data == id) {
-            _uiState.update { prevState ->
-                if (prevState is PostUiState.Success) {
-                    PostUiState.Success(prevState.post.copy(active = false))
-                } else {
-                    prevState
-                }
+        _uiState.update { prevState ->
+            if (prevState is PostUiState.Success && data == prevState.post.id) {
+                PostUiState.Success(prevState.post.copy(active = false))
+            } else {
+                prevState
             }
         }
     }
@@ -69,7 +66,13 @@ class PostViewModel(
     private fun getPost() {
         viewModelScope.launch {
             _uiState.value = try {
-                PostUiState.Success(postRepository.getPost(id))
+                if (id != null) {
+                    PostUiState.Success(postRepository.getPost(id))
+                } else if (slug != null) {
+                    PostUiState.Success(postRepository.getPostBySlug(slug))
+                } else {
+                    PostUiState.Error(FetchingError.NetworkError)
+                }
             } catch (e: IOException) {
                 PostUiState.Error(FetchingError.NetworkError)
             } catch (e: HttpException) {
@@ -85,12 +88,12 @@ class PostViewModel(
     }
 
     companion object {
-        fun Factory(id: String): ViewModelProvider.Factory = viewModelFactory {
+        fun Factory(id: String?, slug: String?): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application =
                     (this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as HamalApplication)
                 val postRepository = application.container.postRepository
-                PostViewModel(id = id, postRepository = postRepository, application)
+                PostViewModel(id = id, slug = slug, postRepository = postRepository, application)
             }
         }
     }

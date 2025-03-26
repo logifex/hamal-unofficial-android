@@ -36,6 +36,7 @@ enum class Screen(@StringRes val title: Int) {
 }
 
 const val POST_ID = "postId"
+const val POST_SLUG = "postSlug"
 const val PICTURE_URL = "pictureUrl"
 const val VIDEO_URL = "videoUrl"
 

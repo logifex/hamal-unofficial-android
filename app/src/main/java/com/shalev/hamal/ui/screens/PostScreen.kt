@@ -33,13 +33,14 @@ import com.shalev.hamal.ui.components.Message
 
 @Composable
 fun PostScreen(
-    id: String,
+    id: String?,
+    slug: String?,
     isFocused: Boolean,
     exoPlayer: ExoPlayer,
     onPictureClick: (url: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
     onDeactivate: () -> Unit,
-    postViewModel: PostViewModel = viewModel(factory = PostViewModel.Factory(id))
+    postViewModel: PostViewModel = viewModel(factory = PostViewModel.Factory(id, slug))
 ) {
     val postUiState = postViewModel.uiState.collectAsState()
     var currentlyPlayedMedia by remember { mutableStateOf<String?>(null) }

@@ -8,13 +8,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.shalev.hamal.ui.screens.HomeScreen
 import com.shalev.hamal.ui.screens.PictureScreen
 import com.shalev.hamal.ui.screens.PostScreen
 import com.shalev.hamal.ui.screens.VideoScreen
+import com.shalev.hamal.utils.Constants.WEBSITE_URL
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
@@ -37,24 +41,28 @@ fun Navigation(
         onScreenChange(focusedScreen)
     }
 
-    val onVideoFullScreen = remember (navController) {
+    val onVideoFullScreen = remember(navController) {
         { url: String ->
             val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
             navController.navigate("${Screen.Video.name}/$encodedUrl")
         }
     }
 
-    val onPictureClick = remember (navController) {
+    val onPictureClick = remember(navController) {
         { url: String ->
             val encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
             navController.navigate("${Screen.Picture.name}/$encodedUrl")
         }
     }
 
-    val onPostClick = remember (navController) {
+    val onPostClick = remember(navController) {
         { id: String ->
             navController.navigate("${Screen.Post.name}/$id")
         }
+    }
+
+    val onPostScreenDeactivate: () -> Unit = {
+        navController.popBackStack(route = Screen.Start.name, inclusive = false)
     }
 
     NavHost(
@@ -72,18 +80,33 @@ fun Navigation(
         }
         composable(route = "${Screen.Post.name}/{$POST_ID}") { navBackStackEntry ->
             val id = navBackStackEntry.arguments?.getString(POST_ID)
-            id?.let {
-                PostScreen(
-                    id,
-                    exoPlayer = exoPlayer,
-                    isFocused = focusedScreen == Screen.Post,
-                    onPictureClick = onPictureClick,
-                    onVideoFullScreen = onVideoFullScreen,
-                    onDeactivate = {
-                        navController.popBackStack(route = Screen.Start.name, inclusive = false)
-                    }
-                )
-            }
+
+            PostScreen(
+                id = id,
+                slug = null,
+                exoPlayer = exoPlayer,
+                isFocused = focusedScreen == Screen.Post,
+                onPictureClick = onPictureClick,
+                onVideoFullScreen = onVideoFullScreen,
+                onDeactivate = onPostScreenDeactivate
+            )
+        }
+        composable(
+            route = "${Screen.Post.name}/slug/{$POST_SLUG}",
+            arguments = listOf(navArgument(POST_SLUG) { type = NavType.StringType; }),
+            deepLinks = listOf(navDeepLink { uriPattern = "$WEBSITE_URL/{$POST_SLUG}" })
+        ) { navBackStackEntry ->
+            val slug = navBackStackEntry.arguments?.getString(POST_SLUG)
+
+            PostScreen(
+                id = null,
+                slug = slug,
+                exoPlayer = exoPlayer,
+                isFocused = focusedScreen == Screen.Post,
+                onPictureClick = onPictureClick,
+                onVideoFullScreen = onVideoFullScreen,
+                onDeactivate = onPostScreenDeactivate
+            )
         }
         composable(route = "${Screen.Picture.name}/{$PICTURE_URL}") { navBackStackEntry ->
             val url = navBackStackEntry.arguments?.getString(PICTURE_URL)

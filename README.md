@@ -6,7 +6,8 @@ My version of the Hamal news app client, providing enhanced performance and user
 
 - Improved performance and user experience
 - Custom enhancements to the original חמ"ל news app functionality
-- Uses the same REST API as the official חמ"ל app
+- Uses the same REST API and Socket.IO server as the official חמ"ל app
+- Supports deep linking to posts from the official website (Requires adding the link in "Open supported links" under Android app settings)
 
 ## Disclaimer
 
