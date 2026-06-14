@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -63,7 +61,7 @@ fun AudioPlayer(
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.Default.PlayArrow,
+                        painter = painterResource(R.drawable.play_arrow),
                         contentDescription = stringResource(R.string.stop_audio),
                         tint = Color.Black
                     )

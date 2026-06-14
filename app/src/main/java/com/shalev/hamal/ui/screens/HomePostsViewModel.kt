@@ -89,7 +89,7 @@ class HomePostsViewModel(
             _uiState.value =
                 try {
                     HomeUiState.Success(postRepository.getPosts(), emptyList())
-                } catch (e: IOException) {
+                } catch (_: IOException) {
                     HomeUiState.Error(FetchingError.NetworkError)
                 } catch (e: HttpException) {
                     HomeUiState.Error(FetchingError.HttpError(e.code()))
@@ -110,7 +110,7 @@ class HomePostsViewModel(
                     try {
                         val newPosts = postRepository.getPosts(prevState.posts.last().publishedAt)
                         HomeUiState.Success(prevState.posts.plus(newPosts), prevState.newPosts)
-                    } catch (e: IOException) {
+                    } catch (_: IOException) {
                         HomeUiState.Error(FetchingError.NetworkError)
                     } catch (e: HttpException) {
                         HomeUiState.Error(FetchingError.HttpError(e.code()))

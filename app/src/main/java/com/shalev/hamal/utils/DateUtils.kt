@@ -8,7 +8,7 @@ private const val minute = second * 60
 private const val hour = minute * 60
 private const val day = hour * 24
 
-fun convertToTimeAgo(date: Long, context: Context): String {
+fun getRelativeTimeString(date: Long, context: Context): String {
     val now = System.currentTimeMillis()
     val diff = now - date
 

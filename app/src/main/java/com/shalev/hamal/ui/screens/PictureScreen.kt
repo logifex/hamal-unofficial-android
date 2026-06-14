@@ -4,6 +4,8 @@ import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -17,30 +19,43 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.shalev.hamal.R
+import com.shalev.hamal.ui.AppBar
 
 @Composable
-fun PictureScreen(url: String) {
+fun PictureScreen(url: String, onBackClick: () -> Unit) {
     var scale by remember { mutableFloatStateOf(1f) }
     var translationXState by remember { mutableFloatStateOf(1f) }
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-        AsyncImage(
-            model = url,
-            contentDescription = stringResource(R.string.picture),
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer(
-                    scaleX = scale,
-                    scaleY = scale,
-                    translationX = translationXState
-                )
-                .pointerInput(Unit) {
-                    detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(1f, 3f)
-                        translationXState += pan.x
-                    }
-                }
+    Scaffold(topBar = {
+        AppBar(
+            title = stringResource(R.string.post_title),
+            navigateUp = onBackClick,
         )
+    }, modifier = Modifier.fillMaxSize()) { innerPadding ->
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            AsyncImage(
+                model = url,
+                contentDescription = stringResource(R.string.picture),
+                contentScale = ContentScale.FillWidth,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = translationXState
+                    )
+                    .pointerInput(Unit) {
+                        detectTransformGestures { _, pan, zoom, _ ->
+                            scale = (scale * zoom).coerceIn(1f, 3f)
+                            translationXState += pan.x
+                        }
+                    }
+            )
+        }
     }
 }

@@ -16,6 +16,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.ui.components.media.AudioPlayer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
 fun PostPodcast(
@@ -58,7 +59,7 @@ fun PostPodcast(
             coroutineScope.launch {
                 while (isPlaying) {
                     currentPosition = exoPlayer.currentPosition
-                    delay(100L)
+                    delay(100.milliseconds)
                 }
             }
         }

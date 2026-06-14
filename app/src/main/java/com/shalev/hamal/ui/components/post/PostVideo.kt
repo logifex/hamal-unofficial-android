@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
@@ -65,10 +64,11 @@ fun PostVideo(
         }
     }
 
-    Box(modifier = modifier
-        .aspectRatio(aspectRatio)
-        .background(Color.Black)
-        .clickable { onPlayVideo(id) }) {
+    Box(
+        modifier = modifier
+            .aspectRatio(aspectRatio)
+            .background(Color.Black)
+            .clickable { onPlayVideo(id) }) {
         if (shouldPlay) {
             VideoPlayer(
                 url = value.url,
@@ -95,7 +95,7 @@ fun PostVideo(
                     )
             ) {
                 Icon(
-                    imageVector = Icons.Default.PlayArrow,
+                    painter = painterResource(R.drawable.play_arrow),
                     contentDescription = stringResource(R.string.play_video),
                     tint = Color.White,
                     modifier = Modifier

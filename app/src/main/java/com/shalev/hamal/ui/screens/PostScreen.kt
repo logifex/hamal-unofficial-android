@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,6 +26,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.data.PostUiState
 import com.shalev.hamal.models.FetchingError
+import com.shalev.hamal.ui.AppBar
 import com.shalev.hamal.ui.components.comment.CommentCount
 import com.shalev.hamal.ui.components.post.PostLayout
 import com.shalev.hamal.ui.components.comment.CommentThread
@@ -40,6 +42,7 @@ fun PostScreen(
     onPictureClick: (url: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
     onDeactivate: () -> Unit,
+    onBackClick: () -> Unit,
     postViewModel: PostViewModel = viewModel(factory = PostViewModel.Factory(id, slug))
 ) {
     val postUiState = postViewModel.uiState.collectAsState()
@@ -68,53 +71,68 @@ fun PostScreen(
             }
     }
 
-    when (postUiState.value) {
-        is PostUiState.Loading -> LoadingIndicator(modifier = Modifier.fillMaxSize())
-        is PostUiState.Error -> {
-            val state = postUiState.value as PostUiState.Error
-            Message(
-                text = when (state.error) {
-                    is FetchingError.NetworkError -> stringResource(R.string.network_error)
-                    is FetchingError.HttpError -> stringResource(
-                        R.string.http_error,
-                        state.error.code
-                    )
-                },
-                modifier = Modifier.fillMaxSize()
+    Scaffold(topBar = {
+        AppBar(
+            title = stringResource(R.string.post_title),
+            navigateUp = onBackClick,
+        )
+    }, modifier = Modifier.fillMaxSize()) { innerPadding ->
+        when (postUiState.value) {
+            is PostUiState.Loading -> LoadingIndicator(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
             )
-        }
 
-        is PostUiState.Success -> {
-            val post = (postUiState.value as PostUiState.Success).post
-            LazyColumn(
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(
-                    dimensionResource(R.dimen.padding_small)
-                ),
-                modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_minimal))
-            ) {
-                item {
-                    Column {
-                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
-                        PostLayout(
-                            post = post,
-                            isExpanded = true,
-                            onPictureClick = onPictureClick,
-                            exoPlayer = exoPlayer,
-                            currentlyPlayingMedia = currentlyPlayedMedia.takeIf { isFocused },
-                            onPlayMedia = { currentlyPlayedMedia = it },
-                            onVideoFullScreen = onVideoFullScreen,
+            is PostUiState.Error -> {
+                val state = postUiState.value as PostUiState.Error
+                Message(
+                    text = when (state.error) {
+                        is FetchingError.NetworkError -> stringResource(R.string.network_error)
+                        is FetchingError.HttpError -> stringResource(
+                            R.string.http_error,
+                            state.error.code
                         )
-                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_large)))
-                        CommentCount(
-                            count = post.commentsCount,
-                            modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
-                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                )
+            }
+
+            is PostUiState.Success -> {
+                val post = (postUiState.value as PostUiState.Success).post
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(
+                        dimensionResource(R.dimen.padding_small)
+                    ),
+                    modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_minimal)),
+                    contentPadding = innerPadding
+                ) {
+                    item {
+                        Column {
+                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
+                            PostLayout(
+                                post = post,
+                                isExpanded = true,
+                                onPictureClick = onPictureClick,
+                                exoPlayer = exoPlayer,
+                                currentlyPlayingMedia = currentlyPlayedMedia.takeIf { isFocused },
+                                onPlayMedia = { currentlyPlayedMedia = it },
+                                onVideoFullScreen = onVideoFullScreen,
+                            )
+                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_large)))
+                            CommentCount(
+                                count = post.commentsCount,
+                                modifier = Modifier.padding(dimensionResource(R.dimen.padding_small))
+                            )
+                        }
                     }
-                }
-                post.comments?.let {
-                    items(items = post.comments) { comment ->
-                        CommentThread(comment)
+                    post.comments?.let {
+                        items(items = post.comments) { comment ->
+                            CommentThread(comment)
+                        }
                     }
                 }
             }

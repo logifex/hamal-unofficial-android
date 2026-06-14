@@ -73,7 +73,7 @@ class PostViewModel(
                 } else {
                     PostUiState.Error(FetchingError.NetworkError)
                 }
-            } catch (e: IOException) {
+            } catch (_: IOException) {
                 PostUiState.Error(FetchingError.NetworkError)
             } catch (e: HttpException) {
                 PostUiState.Error(FetchingError.HttpError(e.code()))

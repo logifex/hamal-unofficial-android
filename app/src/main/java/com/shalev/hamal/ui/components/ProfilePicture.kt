@@ -13,8 +13,8 @@ import com.shalev.hamal.R
 @Composable
 fun ProfilePicture(
     url: String,
-    description: String? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    description: String? = null
 ) {
     AsyncImage(
         model = url,

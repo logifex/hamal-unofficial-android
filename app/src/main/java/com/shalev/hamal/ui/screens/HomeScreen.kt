@@ -6,11 +6,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,18 +28,17 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.data.HomeUiState
 import com.shalev.hamal.models.FetchingError
+import com.shalev.hamal.ui.AppBar
 import com.shalev.hamal.ui.components.Posts
 import com.shalev.hamal.ui.components.PostsNotification
 import com.shalev.hamal.ui.components.LoadingIndicator
 import com.shalev.hamal.ui.components.Message
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     isFocused: Boolean,
     exoPlayer: ExoPlayer,
-    listState: LazyListState,
     onPostClick: (String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
     homeViewModel: HomePostsViewModel = viewModel(factory = HomePostsViewModel.Factory)
@@ -46,90 +47,122 @@ fun HomeScreen(
     val isRefreshing = homeViewModel.refreshing
     val coroutineScope = rememberCoroutineScope()
 
+    val state = rememberPullToRefreshState()
+    val listState = rememberLazyListState()
+
     LaunchedEffect(homeUiState.value) {
         if (homeUiState.value is HomeUiState.Loading) {
             listState.scrollToItem(0)
         }
     }
 
-    if (homeUiState.value is HomeUiState.Success) {
-        val newPosts = (homeUiState.value as HomeUiState.Success).newPosts
-
-        if (newPosts.isNotEmpty()) {
-            LaunchedEffect(Unit) {
-                snapshotFlow { listState.firstVisibleItemIndex }
-                    .collect {
-                        if (it == 0) {
-                            homeViewModel.resetNewPosts()
-                        }
-                    }
-            }
-
-            LaunchedEffect(newPosts) {
-                if (listState.firstVisibleItemIndex <= 1 && listState.firstVisibleItemScrollOffset <= 0) {
-                    listState.scrollToItem(0)
+    Scaffold(topBar = {
+        AppBar(
+            title = stringResource(R.string.app_name),
+            onTitleClick = {
+                coroutineScope.launch {
+                    listState.animateScrollToItem(0)
                 }
             }
+        )
+    }, modifier = Modifier.fillMaxSize()) { innerPadding ->
+        if (homeUiState.value is HomeUiState.Success) {
+            val newPosts = (homeUiState.value as HomeUiState.Success).newPosts
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .zIndex(1f)
-            ) {
-                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
-                PostsNotification(
-                    posts = newPosts,
-                    onClick = {
-                        homeViewModel.resetNewPosts()
-                        coroutineScope.launch {
-                            listState.animateScrollToItem(0)
+            if (newPosts.isNotEmpty()) {
+                LaunchedEffect(Unit) {
+                    snapshotFlow { listState.firstVisibleItemIndex }
+                        .collect {
+                            if (it == 0) {
+                                homeViewModel.resetNewPosts()
+                            }
                         }
-                    }
-                )
-            }
-        }
-    }
+                }
 
-    PullToRefreshBox(
-        isRefreshing = isRefreshing.value,
-        onRefresh = {
-            if (homeUiState.value !is HomeUiState.Loading) {
-                isRefreshing.value = true
-                homeViewModel.getPosts()
+                LaunchedEffect(newPosts) {
+                    if (listState.firstVisibleItemIndex <= 1 && listState.firstVisibleItemScrollOffset <= 0) {
+                        listState.scrollToItem(0)
+                    }
+                }
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .zIndex(1f)
+                        .padding(innerPadding)
+                ) {
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
+                    PostsNotification(
+                        posts = newPosts,
+                        onClick = {
+                            homeViewModel.resetNewPosts()
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        }
+                    )
+                }
             }
         }
-    ) {
-        when (homeUiState.value) {
-            is HomeUiState.Loading -> LoadingIndicator(modifier = Modifier.fillMaxSize())
-            is HomeUiState.Error -> {
-                val state = homeUiState.value as HomeUiState.Error
-                Message(
-                    text = when (state.error) {
-                        is FetchingError.NetworkError -> stringResource(R.string.network_error)
-                        is FetchingError.HttpError -> stringResource(
-                            R.string.http_error,
-                            state.error.code
-                        )
-                    },
+
+        PullToRefreshBox(
+            isRefreshing = isRefreshing.value,
+            onRefresh = {
+                if (homeUiState.value !is HomeUiState.Loading) {
+                    isRefreshing.value = true
+                    homeViewModel.getPosts()
+                }
+            },
+            state = state,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = innerPadding.calculateTopPadding()),
+                    isRefreshing = isRefreshing.value,
+                    state = state
+                )
+            },
+        ) {
+            when (homeUiState.value) {
+                is HomeUiState.Loading -> LoadingIndicator(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
+                        .padding(innerPadding)
                 )
-            }
 
-            is HomeUiState.Success -> {
-                val state = homeUiState.value as HomeUiState.Success
-                Posts(
-                    posts = state.posts,
-                    isFocused = isFocused,
-                    exoPlayer = exoPlayer,
-                    listState = listState,
-                    onPostClick = onPostClick,
-                    onScrollEnd = { homeViewModel.getMorePosts() },
-                    onVideoFullScreen = onVideoFullScreen,
-                    modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_minimal))
-                )
+                is HomeUiState.Error -> {
+                    val state = homeUiState.value as HomeUiState.Error
+                    Message(
+                        text = when (state.error) {
+                            is FetchingError.NetworkError -> stringResource(R.string.network_error)
+                            is FetchingError.HttpError -> stringResource(
+                                R.string.http_error,
+                                state.error.code
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState())
+                            .padding(innerPadding)
+                    )
+                }
+
+                is HomeUiState.Success -> {
+                    val state = homeUiState.value as HomeUiState.Success
+                    Posts(
+                        posts = state.posts,
+                        isFocused = isFocused,
+                        exoPlayer = exoPlayer,
+                        listState = listState,
+                        onPostClick = onPostClick,
+                        onScrollEnd = { homeViewModel.getMorePosts() },
+                        onVideoFullScreen = onVideoFullScreen,
+                        modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_minimal)),
+                        contentPadding = innerPadding
+                    )
+                }
             }
         }
     }

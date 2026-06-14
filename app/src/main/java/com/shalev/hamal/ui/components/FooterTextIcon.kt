@@ -16,8 +16,8 @@ import com.shalev.hamal.R
 
 @Composable
 fun FooterTextIcon(
-    text: String? = null,
     modifier: Modifier = Modifier,
+    text: String? = null,
     icon: @Composable () -> Unit,
 ) {
     Row(

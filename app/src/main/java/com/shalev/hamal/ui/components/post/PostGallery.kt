@@ -1,6 +1,7 @@
 package com.shalev.hamal.ui.components.post
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,15 +23,14 @@ import androidx.compose.ui.text.style.TextAlign
 import coil.compose.AsyncImage
 import com.shalev.hamal.R
 import com.shalev.hamal.models.PostBody
-import com.shalev.hamal.utils.optionalClickablePicture
 
 private const val ITEMS_IN_ROW = 3
 
 @Composable
 fun PostGallery(
     items: List<PostBody.Gallery>,
-    onClick: ((url: String) -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: ((url: String) -> Unit)?
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
@@ -43,7 +43,10 @@ fun PostGallery(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .optionalClickablePicture(items[0].value, onClick)
+                .clickable(
+                    enabled = onClick != null,
+                    onClick = { onClick?.invoke(items[0].value) }
+                )
         )
         Row(horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small))) {
             for (i in 1..ITEMS_IN_ROW) {
@@ -52,7 +55,9 @@ fun PostGallery(
                         modifier = Modifier
                             .weight(1f)
                             .aspectRatio(1f)
-                            .optionalClickablePicture(items[i].value, onClick)
+                            .clickable(
+                                enabled = onClick != null,
+                                onClick = { onClick?.invoke(items[i].value) })
                     ) {
                         AsyncImage(
                             model = items[i].value,
@@ -61,10 +66,11 @@ fun PostGallery(
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (i == ITEMS_IN_ROW && items.size > ITEMS_IN_ROW + 1) {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier
-                                .matchParentSize()
-                                .graphicsLayer { alpha = 0.7f }
-                                .background(Color.Black)) {
+                            Box(
+                                contentAlignment = Alignment.Center, modifier = Modifier
+                                    .matchParentSize()
+                                    .graphicsLayer { alpha = 0.7f }
+                                    .background(Color.Black)) {
                                 Text(
                                     text = "+${items.size - (ITEMS_IN_ROW + 1)}",
                                     color = Color.White,

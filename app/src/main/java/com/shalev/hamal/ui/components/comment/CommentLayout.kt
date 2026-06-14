@@ -34,8 +34,8 @@ fun CommentLayout(comment: Comment, modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 FooterTextIcon(
-                    text = if (comment.likes.count > 0) comment.likes.count.toString() else null,
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.wrapContentWidth(),
+                    text = if (comment.likes.count > 0) comment.likes.count.toString() else null
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.heart),
@@ -45,8 +45,8 @@ fun CommentLayout(comment: Comment, modifier: Modifier = Modifier) {
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 FooterTextIcon(
-                    text = (comment.replies?.size ?: 0).toString(),
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.wrapContentWidth(),
+                    text = (comment.replies?.size ?: 0).toString()
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.message),

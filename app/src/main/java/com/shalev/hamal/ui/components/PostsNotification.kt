@@ -44,12 +44,12 @@ fun PostsNotification(posts: List<Post>, onClick: () -> Unit, modifier: Modifier
                     )
                     ProfilePicture(
                         url = post.writer.avatar,
-                        description = post.writer.displayName,
                         modifier = Modifier.border(
                             dimensionResource(R.dimen.border_medium),
                             MaterialTheme.colorScheme.onPrimary,
                             CircleShape
-                        )
+                        ),
+                        description = post.writer.displayName
                     )
                 }
             }

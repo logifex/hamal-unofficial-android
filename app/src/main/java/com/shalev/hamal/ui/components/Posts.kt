@@ -1,6 +1,7 @@
 package com.shalev.hamal.ui.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +33,7 @@ fun Posts(
     onPostClick: (String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
     onScrollEnd: () -> Unit,
+    contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
     var manuallyPlayedMediaId by remember { mutableStateOf<String?>(null) }
@@ -72,7 +74,7 @@ fun Posts(
             }
     }
 
-    LazyColumn(state = listState, modifier = modifier) {
+    LazyColumn(state = listState, modifier = modifier, contentPadding = contentPadding) {
         items(items = posts, key = { post -> post.id }) { post ->
             Column {
                 Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
@@ -81,8 +83,8 @@ fun Posts(
                     isExpanded = false,
                     onPostClick = onPostClick,
                     currentlyPlayingMedia =
-                    if (currentlyPlayingItem?.first == post.id) currentlyPlayingItem?.second?.id
-                    else null,
+                        if (currentlyPlayingItem?.first == post.id) currentlyPlayingItem?.second?.id
+                        else null,
                     exoPlayer = exoPlayer,
                     onPlayMedia = { manuallyPlayedMediaId = it },
                     onVideoFullScreen = onVideoFullScreen,

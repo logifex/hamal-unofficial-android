@@ -43,8 +43,8 @@ fun PostFooter(
             )
         }
         FooterTextIcon(
-            text = if (likesCount > 0) likesCount.toString() else null,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            text = if (likesCount > 0) likesCount.toString() else null
         ) {
             Icon(
                 painter = painterResource(R.drawable.heart),

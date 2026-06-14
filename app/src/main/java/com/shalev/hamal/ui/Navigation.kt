@@ -1,6 +1,5 @@
 package com.shalev.hamal.ui
 
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -26,8 +25,7 @@ import java.nio.charset.StandardCharsets
 fun Navigation(
     navController: NavHostController,
     exoPlayer: ExoPlayer,
-    mainScreenListState: LazyListState,
-    onScreenChange: (screen: Screen) -> Unit
+    onScreenChange: (screen: Screen) -> Unit,
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val focusedScreen by remember {
@@ -65,6 +63,10 @@ fun Navigation(
         navController.popBackStack(route = Screen.Start.name, inclusive = false)
     }
 
+    val goBack: () -> Unit = {
+        navController.popBackStack()
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Start.name
@@ -73,7 +75,6 @@ fun Navigation(
             HomeScreen(
                 exoPlayer = exoPlayer,
                 isFocused = focusedScreen == Screen.Start,
-                listState = mainScreenListState,
                 onPostClick = onPostClick,
                 onVideoFullScreen = onVideoFullScreen
             )
@@ -88,7 +89,8 @@ fun Navigation(
                 isFocused = focusedScreen == Screen.Post,
                 onPictureClick = onPictureClick,
                 onVideoFullScreen = onVideoFullScreen,
-                onDeactivate = onPostScreenDeactivate
+                onDeactivate = onPostScreenDeactivate,
+                onBackClick = goBack
             )
         }
         composable(
@@ -105,13 +107,14 @@ fun Navigation(
                 isFocused = focusedScreen == Screen.Post,
                 onPictureClick = onPictureClick,
                 onVideoFullScreen = onVideoFullScreen,
-                onDeactivate = onPostScreenDeactivate
+                onDeactivate = onPostScreenDeactivate,
+                onBackClick = goBack,
             )
         }
         composable(route = "${Screen.Picture.name}/{$PICTURE_URL}") { navBackStackEntry ->
             val url = navBackStackEntry.arguments?.getString(PICTURE_URL)
             url?.let {
-                PictureScreen(url)
+                PictureScreen(url = url, onBackClick = goBack)
             }
         }
         composable(route = "${Screen.Video.name}/{$VIDEO_URL}") { navBackStackEntry ->

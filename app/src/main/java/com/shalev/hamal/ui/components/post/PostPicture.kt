@@ -1,5 +1,6 @@
 package com.shalev.hamal.ui.components.post
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -7,13 +8,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import coil.compose.AsyncImage
 import com.shalev.hamal.R
-import com.shalev.hamal.utils.optionalClickablePicture
 
 @Composable
 fun PostPicture(
     url: String,
-    onClick: ((utl: String) -> Unit)? = null,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: ((utl: String) -> Unit)? = null
 ) {
     AsyncImage(
         model = url,
@@ -21,6 +21,6 @@ fun PostPicture(
         contentScale = ContentScale.FillWidth,
         modifier = modifier
             .fillMaxWidth()
-            .optionalClickablePicture(url, onClick)
+            .clickable(enabled = onClick != null, onClick = { onClick?.invoke(url) })
     )
 }

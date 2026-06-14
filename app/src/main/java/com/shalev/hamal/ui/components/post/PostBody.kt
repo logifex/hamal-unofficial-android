@@ -23,6 +23,7 @@ import com.shalev.hamal.ui.components.media.EmbedWebView
 import com.shalev.hamal.ui.components.LinkText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val VIDEO_DELAY = 1000L
 
@@ -34,8 +35,8 @@ fun PostBody(
     exoPlayer: ExoPlayer,
     onPlayMedia: (id: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
-    onPictureClick: ((url: String) -> Unit)?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPictureClick: ((url: String) -> Unit)?
 ) {
     var delayPassed by remember { mutableStateOf(false) }
     val body = remember(postBody, isExpanded) {
@@ -49,7 +50,7 @@ fun PostBody(
     LaunchedEffect(Unit) {
         if (!isExpanded) {
             launch {
-                delay(VIDEO_DELAY)
+                delay(VIDEO_DELAY.milliseconds)
                 delayPassed = true
             }
         }
@@ -94,16 +95,16 @@ fun PostBody(
                     }
 
                     is PostBody.Picture -> {
-                        PostPicture(content.value, onPictureClick)
+                        PostPicture(url = content.value, onClick = onPictureClick)
                     }
 
                     is PostBody.Gallery -> {
                         if (isExpanded) {
-                            PostPicture(content.value, onPictureClick)
+                            PostPicture(url = content.value, onClick = onPictureClick)
                         } else {
                             val items = postBody.filterIsInstance<PostBody.Gallery>()
 
-                            PostGallery(items, onPictureClick)
+                            PostGallery(items = items, onClick = onPictureClick)
                         }
                     }
 

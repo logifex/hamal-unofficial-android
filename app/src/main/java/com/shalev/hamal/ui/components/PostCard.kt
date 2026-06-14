@@ -1,5 +1,6 @@
 package com.shalev.hamal.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,30 +19,27 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.shalev.hamal.R
-import com.shalev.hamal.utils.convertToTimeAgo
-import com.shalev.hamal.utils.optionalClickable
+import com.shalev.hamal.utils.getRelativeTimeString
 import java.time.Instant
-import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.util.TimeZone
 
 @Composable
 fun PostCard(
     avatar: String,
     displayName: String,
     publishedAt: Long,
+    modifier: Modifier = Modifier,
     onContentClick: (() -> Unit)? = null,
     footerContent: (@Composable () -> Unit)? = null,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val time = remember {
-        val instant = LocalDateTime.ofInstant(
-            Instant.ofEpochMilli(publishedAt),
-            TimeZone.getDefault().toZoneId()
-        )
-        instant.format(DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT))
+        val instant = Instant.ofEpochMilli(publishedAt)
+        val formatter =
+            DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault())
+        formatter.format(instant)
     }
     val context = LocalContext.current
 
@@ -52,20 +50,28 @@ fun PostCard(
                 vertical = dimensionResource(R.dimen.padding_medium)
             )
         ) {
-            ProfilePicture(avatar, modifier = Modifier.optionalClickable(onContentClick))
+            ProfilePicture(
+                url = avatar,
+                modifier = Modifier.clickable(
+                    enabled = onContentClick != null,
+                    onClick = { onContentClick?.invoke() }
+                )
+            )
             Spacer(Modifier.width(dimensionResource(R.dimen.padding_small)))
             Column(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .optionalClickable(onContentClick)
+                        .clickable(
+                            enabled = onContentClick != null,
+                            onClick = { onContentClick?.invoke() })
                 ) {
                     Column {
                         Text(
                             text = stringResource(
                                 R.string.post_time,
                                 time,
-                                convertToTimeAgo(publishedAt, context)
+                                getRelativeTimeString(publishedAt, context)
                             ),
                             style = MaterialTheme.typography.bodySmall
                         )

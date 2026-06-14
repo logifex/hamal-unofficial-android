@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,18 +23,17 @@ import com.shalev.hamal.ui.components.PostCard
 import com.shalev.hamal.utils.Constants
 import androidx.core.graphics.toColorInt
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PostLayout(
     post: Post,
     isExpanded: Boolean,
     currentlyPlayingMedia: String?,
     exoPlayer: ExoPlayer,
+    modifier: Modifier = Modifier,
     onPostClick: ((id: String) -> Unit)? = null,
     onPictureClick: ((url: String) -> Unit)? = null,
     onPlayMedia: (id: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val onContentClick = remember(onPostClick) { onPostClick?.let { { onPostClick(post.id) } } }
 
