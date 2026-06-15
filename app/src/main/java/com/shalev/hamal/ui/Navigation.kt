@@ -1,10 +1,13 @@
 package com.shalev.hamal.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -69,7 +72,16 @@ fun Navigation(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Start.name
+        startDestination = Screen.Start.name,
+        popExitTransition = {
+            scaleOut(
+                targetScale = 0.9f,
+                transformOrigin = TransformOrigin(pivotFractionX = 0.5f, pivotFractionY = 0.5f)
+            )
+        },
+        popEnterTransition = {
+            EnterTransition.None
+        },
     ) {
         composable(route = Screen.Start.name) {
             HomeScreen(

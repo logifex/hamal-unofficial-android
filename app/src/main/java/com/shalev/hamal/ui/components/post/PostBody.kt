@@ -16,16 +16,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.fromHtml
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.models.PostBody
 import com.shalev.hamal.ui.components.media.EmbedWebView
-import com.shalev.hamal.ui.components.LinkText
+import com.shalev.hamal.utils.trim
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val VIDEO_DELAY = 1000L
+private const val UNEXPANDED_TEXT_LENGTH = 120
 
 @Composable
 fun PostBody(
@@ -63,29 +69,41 @@ fun PostBody(
         )
         Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
         Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
-            var characters = 0
+            var currentLength = 0
             body.forEach { content ->
                 when (content) {
                     is PostBody.Title -> {}
 
                     is PostBody.Text -> {
-                        val trimmedValue = content.value.trim()
+                        val linkColor = MaterialTheme.colorScheme.secondary
+                        val annotatedString = AnnotatedString.fromHtml(
+                            htmlString = content.value.replace("\n", "<br>"),
+                            linkStyles = TextLinkStyles(
+                                style = SpanStyle(
+                                    textDecoration = TextDecoration.Underline,
+                                    color = linkColor
+                                )
+                            )
+                        )
 
                         if (isExpanded) {
-                            LinkText(
-                                text = trimmedValue
+                            Text(
+                                text = annotatedString.trim()
                             )
-                        } else if (characters < 120) {
+                        } else if (currentLength < UNEXPANDED_TEXT_LENGTH) {
                             val text =
-                                if (characters + content.value.length <= 120) trimmedValue
-                                else content.value.substring(0, 120 - characters).trim() + "..."
+                                if (currentLength + annotatedString.length <= UNEXPANDED_TEXT_LENGTH) annotatedString.trim()
+                                else annotatedString.subSequence(
+                                    0,
+                                    UNEXPANDED_TEXT_LENGTH - currentLength
+                                ).trim() + AnnotatedString("...")
 
-                            LinkText(
+                            Text(
                                 text = text,
                             )
 
-                            characters += content.value.length
-                            if (characters >= 120) {
+                            currentLength += annotatedString.length
+                            if (currentLength >= UNEXPANDED_TEXT_LENGTH) {
                                 Text(
                                     text = stringResource(R.string.read_more),
                                     color = MaterialTheme.colorScheme.secondary
