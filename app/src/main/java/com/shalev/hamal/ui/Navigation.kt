@@ -3,12 +3,10 @@ package com.shalev.hamal.ui
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.TransformOrigin
-import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,21 +23,13 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun Navigation(
-    navController: NavHostController,
-    exoPlayer: ExoPlayer,
-    onScreenChange: (screen: Screen) -> Unit,
-) {
+fun Navigation(navController: NavHostController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    val focusedScreen by remember {
+    val focusedScreen by remember(backStackEntry) {
         derivedStateOf {
             val route = backStackEntry?.destination?.route
             Screen.entries.find { route?.startsWith(it.name) == true } ?: Screen.Start
         }
-    }
-
-    LaunchedEffect(focusedScreen) {
-        onScreenChange(focusedScreen)
     }
 
     val onVideoFullScreen = remember(navController) {
@@ -62,12 +52,16 @@ fun Navigation(
         }
     }
 
-    val onPostScreenDeactivate: () -> Unit = {
-        navController.popBackStack(route = Screen.Start.name, inclusive = false)
+    val onPostScreenDeactivate: () -> Unit = remember(navController) {
+        {
+            navController.popBackStack(route = Screen.Start.name, inclusive = false)
+        }
     }
 
-    val goBack: () -> Unit = {
-        navController.popBackStack()
+    val goBack: () -> Unit = remember(navController) {
+        {
+            navController.popBackStack()
+        }
     }
 
     NavHost(
@@ -85,7 +79,6 @@ fun Navigation(
     ) {
         composable(route = Screen.Start.name) {
             HomeScreen(
-                exoPlayer = exoPlayer,
                 isFocused = focusedScreen == Screen.Start,
                 onPostClick = onPostClick,
                 onVideoFullScreen = onVideoFullScreen
@@ -97,7 +90,6 @@ fun Navigation(
             PostScreen(
                 id = id,
                 slug = null,
-                exoPlayer = exoPlayer,
                 isFocused = focusedScreen == Screen.Post,
                 onPictureClick = onPictureClick,
                 onVideoFullScreen = onVideoFullScreen,
@@ -115,7 +107,6 @@ fun Navigation(
             PostScreen(
                 id = null,
                 slug = slug,
-                exoPlayer = exoPlayer,
                 isFocused = focusedScreen == Screen.Post,
                 onPictureClick = onPictureClick,
                 onVideoFullScreen = onVideoFullScreen,
@@ -135,7 +126,6 @@ fun Navigation(
                 VideoScreen(
                     url = url,
                     isFocused = focusedScreen == Screen.Video,
-                    exoPlayer = exoPlayer,
                     onExitFullScreen = { navController.popBackStack() }
                 )
             }

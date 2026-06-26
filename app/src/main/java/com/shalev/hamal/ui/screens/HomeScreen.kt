@@ -1,10 +1,7 @@
 package com.shalev.hamal.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -24,7 +21,6 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
 import com.shalev.hamal.data.HomeUiState
 import com.shalev.hamal.models.FetchingError
@@ -33,26 +29,39 @@ import com.shalev.hamal.ui.components.Posts
 import com.shalev.hamal.ui.components.PostsNotification
 import com.shalev.hamal.ui.components.LoadingIndicator
 import com.shalev.hamal.ui.components.Message
+import com.shalev.hamal.ui.providers.LocalExoPlayer
 import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
     isFocused: Boolean,
-    exoPlayer: ExoPlayer,
     onPostClick: (String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
     homeViewModel: HomePostsViewModel = viewModel(factory = HomePostsViewModel.Factory)
 ) {
     val homeUiState = homeViewModel.uiState.collectAsState()
     val isRefreshing = homeViewModel.refreshing
-    val coroutineScope = rememberCoroutineScope()
 
+    val coroutineScope = rememberCoroutineScope()
     val state = rememberPullToRefreshState()
     val listState = rememberLazyListState()
 
-    LaunchedEffect(homeUiState.value) {
+    val exoPlayer = LocalExoPlayer.current
+
+    LaunchedEffect(listState, homeUiState.value) {
         if (homeUiState.value is HomeUiState.Loading) {
             listState.scrollToItem(0)
+        }
+    }
+
+    LaunchedEffect(isFocused, exoPlayer) {
+        if (!isFocused) {
+            exoPlayer.run {
+                if (mediaItemCount > 0) {
+                    stop()
+                    clearMediaItems()
+                }
+            }
         }
     }
 
@@ -70,39 +79,35 @@ fun HomeScreen(
             val newPosts = (homeUiState.value as HomeUiState.Success).newPosts
 
             if (newPosts.isNotEmpty()) {
-                LaunchedEffect(Unit) {
-                    snapshotFlow { listState.firstVisibleItemIndex }
-                        .collect {
-                            if (it == 0) {
+                LaunchedEffect(listState) {
+                    snapshotFlow { listState.firstVisibleItemIndex == 0 }
+                        .collect { isTop ->
+                            if (isTop) {
                                 homeViewModel.resetNewPosts()
                             }
                         }
                 }
 
-                LaunchedEffect(newPosts) {
+                LaunchedEffect(listState, newPosts) {
                     if (listState.firstVisibleItemIndex <= 1 && listState.firstVisibleItemScrollOffset <= 0) {
                         listState.scrollToItem(0)
                     }
                 }
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                PostsNotification(
+                    posts = newPosts,
+                    onClick = {
+                        homeViewModel.resetNewPosts()
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .zIndex(1f)
                         .padding(innerPadding)
-                ) {
-                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
-                    PostsNotification(
-                        posts = newPosts,
-                        onClick = {
-                            homeViewModel.resetNewPosts()
-                            coroutineScope.launch {
-                                listState.animateScrollToItem(0)
-                            }
-                        }
-                    )
-                }
+                        .padding(top = dimensionResource(R.dimen.padding_medium))
+                )
             }
         }
 
@@ -159,7 +164,11 @@ fun HomeScreen(
                         onPostClick = onPostClick,
                         onScrollEnd = { homeViewModel.getMorePosts() },
                         onVideoFullScreen = onVideoFullScreen,
-                        modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_minimal)),
+                        modifier = Modifier.padding(
+                            top = dimensionResource(R.dimen.padding_small),
+                            start = dimensionResource(R.dimen.padding_minimal),
+                            end = dimensionResource(R.dimen.padding_minimal)
+                        ),
                         contentPadding = innerPadding
                     )
                 }

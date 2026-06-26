@@ -2,7 +2,7 @@ package com.shalev.hamal.ui.components.comment
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,8 +30,9 @@ fun CommentLayout(comment: Comment, modifier: Modifier = Modifier) {
         },
         footerContent = {
             Row(
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 FooterTextIcon(
                     modifier = Modifier.wrapContentWidth(),
@@ -43,10 +44,9 @@ fun CommentLayout(comment: Comment, modifier: Modifier = Modifier) {
                         tint = Color.Unspecified
                     )
                 }
-                Spacer(modifier = Modifier.weight(1f))
                 FooterTextIcon(
                     modifier = Modifier.wrapContentWidth(),
-                    text = (comment.replies?.size ?: 0).toString()
+                    text = comment.replies.size.toString()
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.message),

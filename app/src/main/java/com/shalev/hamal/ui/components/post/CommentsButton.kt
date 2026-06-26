@@ -2,11 +2,9 @@ package com.shalev.hamal.ui.components.post
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,8 +23,9 @@ import com.shalev.hamal.R
 fun CommentsButton(commentsCount: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_minimal)),
         modifier = modifier
-            .clip(RoundedCornerShape(dimensionResource(R.dimen.button_corner_radius)))
+            .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.primary)
             .padding(
                 horizontal = dimensionResource(R.dimen.padding_small),
@@ -38,7 +37,6 @@ fun CommentsButton(commentsCount: Int, onClick: () -> Unit, modifier: Modifier =
             text = stringResource(R.string.comments_count, commentsCount),
             color = MaterialTheme.colorScheme.onPrimary,
         )
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_minimal)))
         Icon(
             painter = painterResource(R.drawable.message),
             contentDescription = null,

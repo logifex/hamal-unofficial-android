@@ -1,5 +1,6 @@
 package com.shalev.hamal.models
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -8,6 +9,7 @@ import kotlinx.serialization.json.JsonElement
 
 @OptIn(ExperimentalSerializationApi::class)
 @JsonClassDiscriminator("type")
+@Immutable
 @Serializable
 sealed class PostBody {
     @SerialName(value = "_id")

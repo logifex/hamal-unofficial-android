@@ -2,7 +2,6 @@ package com.shalev.hamal.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -25,29 +24,24 @@ fun AppBar(
     onTitleClick: (() -> Unit)? = null,
     navigateUp: (() -> Unit)? = null,
 ) {
-    val interactionSource = remember {
-        MutableInteractionSource()
-    }
-
     CenterAlignedTopAppBar(
         title = {
-            Box(
+            Text(
+                title,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.clickable(
                     enabled = onTitleClick != null,
-                    interactionSource = interactionSource,
+                    interactionSource = remember {
+                        MutableInteractionSource()
+                    },
                     indication = null
-                ) { onTitleClick?.invoke() }) {
-                Text(
-                    title,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                )
-            }
+                ) { onTitleClick?.invoke() })
         },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.primary
         ),
         navigationIcon = {
-            if (navigateUp != null) {
+            navigateUp?.let {
                 IconButton(onClick = { navigateUp() }) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_back),

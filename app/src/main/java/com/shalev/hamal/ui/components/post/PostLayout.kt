@@ -2,17 +2,14 @@ package com.shalev.hamal.ui.components.post
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
@@ -22,10 +19,14 @@ import com.shalev.hamal.models.Post
 import com.shalev.hamal.ui.components.PostCard
 import com.shalev.hamal.utils.Constants
 import androidx.core.graphics.toColorInt
+import com.shalev.hamal.models.PostBodyUi
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun PostLayout(
     post: Post,
+    displayedBody: ImmutableList<PostBodyUi>,
+    galleryItems: ImmutableList<PostBodyUi.Gallery>,
     isExpanded: Boolean,
     currentlyPlayingMedia: String?,
     exoPlayer: ExoPlayer,
@@ -35,7 +36,7 @@ fun PostLayout(
     onPlayMedia: (id: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
 ) {
-    val onContentClick = remember(onPostClick) { onPostClick?.let { { onPostClick(post.id) } } }
+    val onContentClick = onPostClick?.let { { onPostClick(post.id) } }
 
     PostCard(
         avatar = post.writer.avatar,
@@ -43,42 +44,41 @@ fun PostLayout(
         publishedAt = post.publishedAt,
         onContentClick = onContentClick,
         content = {
-            if (post.stampData.isActive) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(post.stampData.color.toColorInt()))
-                ) {
+            Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small))) {
+                if (post.stampData.isActive) {
                     Text(
                         text = post.stampData.text,
                         color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(
-                            horizontal = dimensionResource(R.dimen.padding_small),
-                            vertical = dimensionResource(R.dimen.padding_minimal)
-                        )
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(post.stampData.color.toColorInt()))
+                            .padding(
+                                horizontal = dimensionResource(R.dimen.padding_small),
+                                vertical = dimensionResource(R.dimen.padding_minimal)
+                            )
                     )
                 }
-                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
+                PostBody(
+                    postBody = displayedBody,
+                    galleryItems = galleryItems,
+                    isExpanded = isExpanded,
+                    currentlyPlayingMedia = currentlyPlayingMedia,
+                    exoPlayer = exoPlayer,
+                    onPictureClick = onPictureClick,
+                    onPlayMedia = onPlayMedia,
+                    onVideoFullScreen = onVideoFullScreen
+                )
             }
-            PostBody(
-                postBody = post.body,
-                isExpanded = isExpanded,
-                currentlyPlayingMedia = currentlyPlayingMedia,
-                exoPlayer = exoPlayer,
-                onPictureClick = onPictureClick,
-                onPlayMedia = onPlayMedia,
-                onVideoFullScreen = onVideoFullScreen
-            )
         },
         footerContent = {
-            Column {
-                if (post.hashtags.isNotEmpty()) {
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
-                        modifier = Modifier.padding(vertical = dimensionResource(R.dimen.padding_small))
-                    ) {
-                        post.hashtags.forEach { hashtag ->
+            if (post.hashtags.isNotEmpty()) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium)),
+                    modifier = Modifier.padding(vertical = dimensionResource(R.dimen.padding_small))
+                ) {
+                    post.hashtags.forEach { hashtag ->
+                        key(hashtag.id) {
                             Text(
                                 text = "# ${hashtag.text}",
                                 color = MaterialTheme.colorScheme.secondary,
@@ -86,13 +86,13 @@ fun PostLayout(
                         }
                     }
                 }
-                PostFooter(
-                    likesCount = post.likes.count,
-                    commentsCount = post.commentsCount,
-                    shareUrl = "${Constants.WEBSITE_URL}/${post.metaData.slug}",
-                    onCommentsClick = onContentClick ?: {}
-                )
             }
+            PostFooter(
+                likesCount = post.likes.count,
+                commentsCount = post.commentsCount,
+                shareUrl = "${Constants.WEBSITE_URL}/${post.metaData.slug}",
+                onCommentsClick = onContentClick
+            )
         },
         modifier = modifier
     )

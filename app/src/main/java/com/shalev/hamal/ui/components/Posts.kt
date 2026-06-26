@@ -1,11 +1,8 @@
 package com.shalev.hamal.ui.components
 
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -13,20 +10,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
-import com.shalev.hamal.models.Post
-import com.shalev.hamal.models.PostBody
+import com.shalev.hamal.models.PostUi
 import com.shalev.hamal.ui.components.post.PostLayout
-import kotlin.math.abs
+import com.shalev.hamal.utils.getCurrentlyPlayingItem
+import kotlinx.collections.immutable.ImmutableList
 
 @Composable
 fun Posts(
-    posts: List<Post>,
+    posts: ImmutableList<PostUi>,
     isFocused: Boolean,
     exoPlayer: ExoPlayer,
     listState: LazyListState,
@@ -36,83 +34,73 @@ fun Posts(
     contentPadding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    var manuallyPlayedMediaId by remember { mutableStateOf<String?>(null) }
-    var currentlyPlayingItem by remember { mutableStateOf<Pair<String, PostBody>?>(null) }
+    var manuallyPlayedId by remember { mutableStateOf<String?>(null) }
+    var currentlyPlayingItemId by remember { mutableStateOf<String?>(null) }
+    val updatedPlayingItem by rememberUpdatedState(currentlyPlayingItemId)
 
-    LaunchedEffect(listState, posts, manuallyPlayedMediaId, isFocused, exoPlayer) {
-        snapshotFlow { listState.layoutInfo }
-            .collect { layoutInfo ->
-                val nextPlayingItem =
-                    if (isFocused) {
-                        getCurrentlyPlayingItem(layoutInfo, posts, manuallyPlayedMediaId)
-                    } else null
-
-                if (nextPlayingItem != currentlyPlayingItem) {
+    if (isFocused) {
+        LaunchedEffect(listState, posts, manuallyPlayedId, exoPlayer) {
+            snapshotFlow {
+                val layoutInfo = listState.layoutInfo
+                getCurrentlyPlayingItem(layoutInfo, posts, manuallyPlayedId)
+            }.collect { nextPlayingItemId ->
+                if (nextPlayingItemId != updatedPlayingItem) {
                     exoPlayer.run {
                         if (mediaItemCount > 0) {
                             clearMediaItems()
                             stop()
                         }
                     }
-                }
-                currentlyPlayingItem = nextPlayingItem
-            }
-    }
-
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo }
-            .collect { layoutInfo ->
-                val totalItems = layoutInfo.totalItemsCount
-
-                if (totalItems > 0) {
-                    val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-
-                    if (lastVisibleItemIndex >= totalItems - 5) {
-                        onScrollEnd()
+                    currentlyPlayingItemId = nextPlayingItemId
+                    if (manuallyPlayedId != null && nextPlayingItemId != manuallyPlayedId) {
+                        manuallyPlayedId = null
                     }
                 }
             }
+        }
     }
 
-    LazyColumn(state = listState, modifier = modifier, contentPadding = contentPadding) {
-        items(items = posts, key = { post -> post.id }) { post ->
-            Column {
-                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
-                PostLayout(
-                    post = post,
-                    isExpanded = false,
-                    onPostClick = onPostClick,
-                    currentlyPlayingMedia =
-                        if (currentlyPlayingItem?.first == post.id) currentlyPlayingItem?.second?.id
-                        else null,
-                    exoPlayer = exoPlayer,
-                    onPlayMedia = { manuallyPlayedMediaId = it },
-                    onVideoFullScreen = onVideoFullScreen,
-                    modifier = Modifier.fillParentMaxWidth()
-                )
+    LaunchedEffect(listState, onScrollEnd) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+
+            if (totalItems > 0) {
+                val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                lastVisibleItemIndex >= totalItems - 5
+            } else {
+                false
+            }
+        }.collect { isNearEnd ->
+            if (isNearEnd) {
+                onScrollEnd()
             }
         }
     }
-}
 
-private fun getCurrentlyPlayingItem(
-    layoutInfo: LazyListLayoutInfo,
-    posts: List<Post>,
-    manuallyPlayedVideoId: String?
-): Pair<String, PostBody>? {
-    val midPoint = (layoutInfo.viewportStartOffset + layoutInfo.viewportEndOffset) / 2
-    val itemsFromCenter =
-        layoutInfo.visibleItemsInfo.sortedBy { abs((it.offset + it.size / 2) - midPoint) }
-
-    val visiblePlayableMedia = itemsFromCenter.mapNotNull { item ->
-        val post = posts[item.index]
-        val firstMedia = post.body.firstOrNull { it !is PostBody.Title && it !is PostBody.Text }
-        firstMedia.takeIf { (it is PostBody.Video || it is PostBody.Podcast) }
-            ?.let { media ->
-                post.id to media
-            }
+    LazyColumn(
+        state = listState,
+        modifier = modifier,
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small))
+    ) {
+        items(
+            items = posts,
+            key = { post -> post.id },
+            contentType = { item -> item.firstMedia?.type ?: "text" }) { post ->
+            PostLayout(
+                post = post.data,
+                displayedBody = post.displayBody,
+                galleryItems = post.galleryItems,
+                isExpanded = false,
+                onPostClick = onPostClick,
+                currentlyPlayingMedia = if (isFocused && currentlyPlayingItemId == post.id) post.firstMedia?.id
+                else null,
+                exoPlayer = exoPlayer,
+                onPlayMedia = { _ -> manuallyPlayedId = post.id },
+                onVideoFullScreen = onVideoFullScreen,
+                modifier = Modifier.fillParentMaxWidth()
+            )
+        }
     }
-
-    return visiblePlayableMedia.find { it.second.id == manuallyPlayedVideoId }
-        ?: visiblePlayableMedia.firstOrNull { it.second is PostBody.Video }
 }

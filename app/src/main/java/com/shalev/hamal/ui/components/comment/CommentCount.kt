@@ -1,11 +1,9 @@
 package com.shalev.hamal.ui.components.comment
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,21 +23,18 @@ import com.shalev.hamal.R
 fun CommentCount(count: Int, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
         modifier = modifier
     ) {
-        Box(
+        Icon(
+            painter = painterResource(R.drawable.message),
+            contentDescription = null,
+            tint = Color.Unspecified,
             modifier = Modifier
                 .clip(shape = CircleShape)
                 .background(MaterialTheme.colorScheme.primary)
                 .padding(dimensionResource(R.dimen.padding_small))
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.message),
-                contentDescription = null,
-                tint = Color.Unspecified
-            )
-        }
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
+        )
         Text(text = stringResource(R.string.comments_count, count))
     }
 }

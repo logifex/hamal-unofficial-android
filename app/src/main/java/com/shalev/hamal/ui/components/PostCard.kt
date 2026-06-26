@@ -1,13 +1,12 @@
 package com.shalev.hamal.ui.components
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,7 +34,7 @@ fun PostCard(
     footerContent: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    val time = remember {
+    val time = remember(publishedAt) {
         val instant = Instant.ofEpochMilli(publishedAt)
         val formatter =
             DateTimeFormatter.ofLocalizedTime(FormatStyle.SHORT).withZone(ZoneId.systemDefault())
@@ -45,6 +44,7 @@ fun PostCard(
 
     Card(modifier = modifier) {
         Row(
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
             modifier = Modifier.padding(
                 horizontal = dimensionResource(R.dimen.padding_small),
                 vertical = dimensionResource(R.dimen.padding_medium)
@@ -57,39 +57,36 @@ fun PostCard(
                     onClick = { onContentClick?.invoke() }
                 )
             )
-            Spacer(Modifier.width(dimensionResource(R.dimen.padding_small)))
-            Column(modifier = Modifier.fillMaxWidth()) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small))
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(
                             enabled = onContentClick != null,
-                            onClick = { onContentClick?.invoke() })
+                            onClick = { onContentClick?.invoke() }),
                 ) {
-                    Column {
-                        Text(
-                            text = stringResource(
-                                R.string.post_time,
-                                time,
-                                getRelativeTimeString(publishedAt, context)
-                            ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Text(
-                            text = displayName,
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Column(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.padding_small))) {
+                    Text(
+                        text = stringResource(
+                            R.string.post_time,
+                            time,
+                            getRelativeTimeString(publishedAt, context)
+                        ),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = displayName,
+                        color = MaterialTheme.colorScheme.primary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Box(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.padding_small))) {
                         content()
                     }
                 }
                 footerContent?.let {
-                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
-                    Column {
-                        footerContent()
-                    }
+                    it()
                 }
             }
         }
@@ -100,7 +97,7 @@ fun PostCard(
 @Composable
 fun PostCardPreview() {
     PostCard(
-        "https://image-resizer.walla.cloud/image/1685264691981_image_512x512.png",
+        "https://image-resizer.walla.cloud/image/1685264691981_image_512x512.png?width=100",
         "מערכת חמ\"ל",
         System.currentTimeMillis()
     ) {}

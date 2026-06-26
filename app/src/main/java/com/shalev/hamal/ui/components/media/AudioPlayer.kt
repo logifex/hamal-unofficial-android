@@ -1,13 +1,12 @@
 package com.shalev.hamal.ui.components.media
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +44,11 @@ fun AudioPlayer(
         String.format(format, positionMinutes, positionSeconds)
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier.fillMaxWidth()) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_small)),
+        modifier = modifier.fillMaxWidth()
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             IconButton(
                 onClick = onPlayClick,
@@ -69,10 +72,9 @@ fun AudioPlayer(
             }
             Text(text = positionText)
         }
-        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_small)))
         Slider(
             value = position.toFloat(),
-            onValueChange = { onPositionChanged(it.toLong()) },
+            onValueChange = { position -> onPositionChanged(position.toLong()) },
             valueRange = 0f..duration.toFloat(),
             modifier = Modifier
                 .align(Alignment.Top)

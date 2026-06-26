@@ -24,8 +24,8 @@ fun PostFooter(
     likesCount: Int,
     commentsCount: Int,
     shareUrl: String,
-    onCommentsClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onCommentsClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
 
@@ -53,7 +53,7 @@ fun PostFooter(
             )
         }
         Spacer(modifier = Modifier.weight(1f))
-        CommentsButton(commentsCount = commentsCount, onClick = onCommentsClick)
+        CommentsButton(commentsCount = commentsCount, onClick = { onCommentsClick?.invoke() })
     }
 }
 
@@ -69,5 +69,5 @@ fun onShareClick(shareUrl: String, context: Context) {
 @Preview
 @Composable
 fun PreviewPostFooter() {
-    PostFooter(5, 2, "", {})
+    PostFooter(5, 2, "")
 }

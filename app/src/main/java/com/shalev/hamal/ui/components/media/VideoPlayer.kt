@@ -2,7 +2,6 @@ package com.shalev.hamal.ui.components.media
 
 import android.view.ViewGroup
 import androidx.annotation.OptIn
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,24 +24,23 @@ fun VideoPlayer(
     val videoProgressColor = MaterialTheme.colorScheme.primary
     val remainingBarColor = MaterialTheme.colorScheme.primaryContainer
 
-    Box(modifier) {
-        AndroidView(
-            factory = { ctx ->
-                PlayerView(ctx).apply {
-                    layoutParams = ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    player = exoPlayer
-                    setFullscreenButtonState(isFullScreen)
-                    setFullscreenButtonClickListener { onVideoFullScreen(url) }
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                player = exoPlayer
+                setFullscreenButtonState(isFullScreen)
+                setFullscreenButtonClickListener { onVideoFullScreen(url) }
 
-                    val timeBar = findViewById<DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress)
-                    timeBar?.let { bar ->
-                        bar.setPlayedColor(videoProgressColor.toArgb())
-                        bar.setScrubberColor(videoProgressColor.toArgb())
-                        bar.setBufferedColor(remainingBarColor.toArgb())
-                    }
+                val timeBar = findViewById<DefaultTimeBar>(androidx.media3.ui.R.id.exo_progress)
+                timeBar?.let { bar ->
+                    bar.setPlayedColor(videoProgressColor.toArgb())
+                    bar.setScrubberColor(videoProgressColor.toArgb())
+                    bar.setBufferedColor(remainingBarColor.toArgb())
                 }
-            })
-    }
+            }
+        }, modifier = modifier
+    )
 }

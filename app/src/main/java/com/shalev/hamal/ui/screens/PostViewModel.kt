@@ -11,8 +11,11 @@ import com.shalev.hamal.data.JsonProvider
 import com.shalev.hamal.data.PostUiState
 import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.models.Post
+import com.shalev.hamal.models.flatten
+import com.shalev.hamal.models.toPostUiItem
 import com.shalev.hamal.utils.Constants
 import io.socket.emitter.Emitter
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -39,7 +42,10 @@ class PostViewModel(
 
         _uiState.update { prevState ->
             if (prevState is PostUiState.Success && post.id == prevState.post.id) {
-                PostUiState.Success(post.copy(comments = prevState.post.comments))
+                PostUiState.Success(
+                    post.copy(comments = prevState.post.data.comments).toPostUiItem(),
+                    prevState.flattenedComments
+                )
             } else {
                 prevState
             }
@@ -50,7 +56,10 @@ class PostViewModel(
         val data = args[0] as String
         _uiState.update { prevState ->
             if (prevState is PostUiState.Success && data == prevState.post.id) {
-                PostUiState.Success(prevState.post.copy(active = false))
+                PostUiState.Success(
+                    prevState.post.copy(data = prevState.post.data.copy(active = false)),
+                    prevState.flattenedComments
+                )
             } else {
                 prevState
             }
@@ -66,10 +75,16 @@ class PostViewModel(
     private fun getPost() {
         viewModelScope.launch {
             _uiState.value = try {
-                if (id != null) {
-                    PostUiState.Success(postRepository.getPost(id))
-                } else if (slug != null) {
-                    PostUiState.Success(postRepository.getPostBySlug(slug))
+                val post = when {
+                    id != null -> postRepository.getPost(id)
+                    slug != null -> postRepository.getPostBySlug(slug)
+                    else -> null
+                }
+                if (post != null) {
+                    PostUiState.Success(
+                        post.toPostUiItem(),
+                        post.comments?.flatten()?.toImmutableList()
+                    )
                 } else {
                     PostUiState.Error(FetchingError.NetworkError)
                 }
@@ -82,7 +97,6 @@ class PostViewModel(
     }
 
     override fun onCleared() {
-        super.onCleared()
         mSocket.off(Constants.SocketEvents.ITEM_UPDATE, onItemUpdate)
         mSocket.off(Constants.SocketEvents.ITEM_DELETE, onItemDelete)
     }

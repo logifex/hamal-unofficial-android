@@ -1,6 +1,5 @@
 package com.shalev.hamal.ui.components.post
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -17,17 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.fromHtml
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.R
-import com.shalev.hamal.models.PostBody
-import com.shalev.hamal.ui.components.media.EmbedWebView
-import com.shalev.hamal.utils.trim
+import com.shalev.hamal.models.PostBodyUi
+import com.shalev.hamal.utils.parsePostBodyHtml
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val VIDEO_DELAY = 1000L
@@ -35,129 +30,128 @@ private const val UNEXPANDED_TEXT_LENGTH = 120
 
 @Composable
 fun PostBody(
-    postBody: List<PostBody>,
+    postBody: ImmutableList<PostBodyUi>,
+    galleryItems: ImmutableList<PostBodyUi.Gallery>,
     isExpanded: Boolean,
     currentlyPlayingMedia: String?,
     exoPlayer: ExoPlayer,
     onPlayMedia: (id: String) -> Unit,
     onVideoFullScreen: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    onPictureClick: ((url: String) -> Unit)?
+    onPictureClick: ((url: String) -> Unit)?,
+    modifier: Modifier = Modifier
 ) {
     var delayPassed by remember { mutableStateOf(false) }
-    val body = remember(postBody, isExpanded) {
-        if (isExpanded) postBody.drop(1)
-        else {
-            val texts = postBody.filterIsInstance<PostBody.Text>()
-            postBody.drop(1).firstOrNull { it !is PostBody.Text }?.let { texts + it } ?: texts
+
+    if (!isExpanded) {
+        LaunchedEffect(Unit) {
+            delay(VIDEO_DELAY.milliseconds)
+            delayPassed = true
         }
     }
 
-    LaunchedEffect(Unit) {
-        if (!isExpanded) {
-            launch {
-                delay(VIDEO_DELAY.milliseconds)
-                delayPassed = true
-            }
-        }
+    val linkColor = MaterialTheme.colorScheme.secondary
+    val (parsedTexts, hasMore) = remember(postBody, linkColor, isExpanded) {
+        parsePostBodyHtml(
+            postBody,
+            linkColor,
+            if (isExpanded) Int.MAX_VALUE else UNEXPANDED_TEXT_LENGTH
+        )
     }
+    val lastParsedId = parsedTexts.keys.lastOrNull()
 
     Column(modifier = modifier) {
-        Text(
-            text = (postBody[0] as PostBody.Title).value.trim(),
-            style = MaterialTheme.typography.titleSmall,
-        )
-        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_small)))
-        Column(verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_medium))) {
-            var currentLength = 0
-            body.forEach { content ->
+        postBody.forEachIndexed { index, content ->
+            key(content.id) {
                 when (content) {
-                    is PostBody.Title -> {}
-
-                    is PostBody.Text -> {
-                        val linkColor = MaterialTheme.colorScheme.secondary
-                        val annotatedString = AnnotatedString.fromHtml(
-                            htmlString = content.value.replace("\n", "<br>"),
-                            linkStyles = TextLinkStyles(
-                                style = SpanStyle(
-                                    textDecoration = TextDecoration.Underline,
-                                    color = linkColor
-                                )
-                            )
+                    is PostBodyUi.Title -> {
+                        Text(
+                            text = content.value.trim(),
+                            style = MaterialTheme.typography.titleSmall,
                         )
+                    }
 
-                        if (isExpanded) {
+                    is PostBodyUi.Text -> {
+                        val annotatedString = parsedTexts[content.id] ?: return@forEachIndexed
+                        val showReadMore = hasMore && lastParsedId == content.id
+
+                        Text(text = if (showReadMore) annotatedString + AnnotatedString("...") else annotatedString)
+
+                        if (showReadMore) {
+                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.padding_medium)))
                             Text(
-                                text = annotatedString.trim()
+                                text = stringResource(R.string.read_more),
+                                color = MaterialTheme.colorScheme.secondary
                             )
-                        } else if (currentLength < UNEXPANDED_TEXT_LENGTH) {
-                            val text =
-                                if (currentLength + annotatedString.length <= UNEXPANDED_TEXT_LENGTH) annotatedString.trim()
-                                else annotatedString.subSequence(
-                                    0,
-                                    UNEXPANDED_TEXT_LENGTH - currentLength
-                                ).trim() + AnnotatedString("...")
-
-                            Text(
-                                text = text,
-                            )
-
-                            currentLength += annotatedString.length
-                            if (currentLength >= UNEXPANDED_TEXT_LENGTH) {
-                                Text(
-                                    text = stringResource(R.string.read_more),
-                                    color = MaterialTheme.colorScheme.secondary
-                                )
-                            }
                         }
                     }
 
-                    is PostBody.Picture -> {
-                        PostPicture(url = content.value, onClick = onPictureClick)
+                    is PostBodyUi.Picture -> {
+                        PostPicture(
+                            url = content.value,
+                            aspectRatio = content.aspectRatio,
+                            onClick = onPictureClick
+                        )
                     }
 
-                    is PostBody.Gallery -> {
+                    is PostBodyUi.Gallery -> {
                         if (isExpanded) {
-                            PostPicture(url = content.value, onClick = onPictureClick)
+                            PostPicture(
+                                url = content.value,
+                                aspectRatio = content.aspectRatio,
+                                onClick = onPictureClick
+                            )
                         } else {
-                            val items = postBody.filterIsInstance<PostBody.Gallery>()
-
-                            PostGallery(items = items, onClick = onPictureClick)
+                            PostGallery(items = galleryItems, onClick = onPictureClick)
                         }
                     }
 
-                    is PostBody.Video -> {
+                    is PostBodyUi.Video -> {
                         PostVideo(
                             id = content.id,
                             value = content.value,
+                            aspectRatio = content.aspectRatio,
                             exoPlayer = exoPlayer,
                             isExpanded = isExpanded,
                             shouldPlay = currentlyPlayingMedia == content.id && (isExpanded || delayPassed),
                             isFullScreen = false,
-                            onPlayVideo = { onPlayMedia(it) },
+                            onPlayVideo = { id -> onPlayMedia(id) },
                             onVideoFullScreen = onVideoFullScreen,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    is PostBody.Podcast -> {
+                    is PostBodyUi.Podcast -> {
                         PostPodcast(
                             id = content.id,
                             url = content.value,
                             exoPlayer = exoPlayer,
                             shouldPlay = currentlyPlayingMedia == content.id,
-                            onPlayClick = { onPlayMedia(it) },
+                            onPlayClick = { id -> onPlayMedia(id) },
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
 
-                    is PostBody.Embed -> {
-                        EmbedWebView(content.value, modifier = Modifier.fillMaxWidth())
+                    is PostBodyUi.Embed -> {
+                        PostEmbed(
+                            content.value,
+                            size = content.dimensions,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
                     else -> {
-                        Text(content.value.toString())
+                        Text((content as PostBodyUi.Unimplemented).value)
                     }
+                }
+
+                if (index < postBody.lastIndex) {
+                    Spacer(
+                        modifier = Modifier.height(
+                            if (content is PostBodyUi.Title) dimensionResource(
+                                R.dimen.padding_small
+                            ) else dimensionResource(R.dimen.padding_medium)
+                        )
+                    )
                 }
             }
         }

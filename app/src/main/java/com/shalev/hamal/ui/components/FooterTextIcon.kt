@@ -1,8 +1,7 @@
 package com.shalev.hamal.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,20 +17,22 @@ import com.shalev.hamal.R
 fun FooterTextIcon(
     modifier: Modifier = Modifier,
     text: String? = null,
-    icon: @Composable () -> Unit,
+    icon: @Composable (modifier: Modifier) -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        text?.let {
+    if (text.isNullOrEmpty()) {
+        icon(modifier)
+    } else {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.padding_minimal)),
+            modifier = modifier
+        ) {
             Text(
                 text = text,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.padding_minimal)))
+            icon(Modifier)
         }
-        icon()
     }
 }
 

@@ -1,7 +1,7 @@
 package com.shalev.hamal.ui.components
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -14,12 +14,16 @@ import com.shalev.hamal.R
 
 @Composable
 fun Message(text: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.padding(dimensionResource(R.dimen.padding_small)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = text, textAlign = TextAlign.Center, style = MaterialTheme.typography.bodyLarge)
-    }
+    Text(
+        text = text,
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = modifier
+            .padding(dimensionResource(R.dimen.padding_small))
+            .wrapContentSize(
+                Alignment.Center
+            )
+    )
 }
 
 @Preview(showBackground = true)

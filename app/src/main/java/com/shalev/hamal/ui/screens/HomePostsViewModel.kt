@@ -12,8 +12,11 @@ import com.shalev.hamal.data.PostRepository
 import com.shalev.hamal.data.JsonProvider
 import com.shalev.hamal.models.FetchingError
 import com.shalev.hamal.models.Post
+import com.shalev.hamal.models.toPostFeedItem
 import com.shalev.hamal.utils.Constants
 import io.socket.emitter.Emitter
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,8 +43,10 @@ class HomePostsViewModel(
         val post = JsonProvider.json.decodeFromString(Post.serializer(), data.toString())
         _uiState.update { prevState ->
             if (prevState is HomeUiState.Success) {
-                val updatedPosts = listOf(post) + prevState.posts
-                HomeUiState.Success(updatedPosts, prevState.newPosts.plus(post))
+                HomeUiState.Success(
+                    listOf(post.toPostFeedItem()).plus(prevState.posts).toImmutableList(),
+                    prevState.newPosts.plus(post).toImmutableList()
+                )
             } else {
                 prevState
             }
@@ -53,8 +58,9 @@ class HomePostsViewModel(
         val post = JsonProvider.json.decodeFromString(Post.serializer(), data.toString())
         _uiState.update { prevState ->
             if (prevState is HomeUiState.Success) {
-                val updatedPosts = prevState.posts.map { if (it.id == post.id) post else it }
-                HomeUiState.Success(updatedPosts, prevState.newPosts)
+                val updatedPosts =
+                    prevState.posts.map { if (it.id == post.id) post.toPostFeedItem() else it }
+                HomeUiState.Success(updatedPosts.toImmutableList(), prevState.newPosts)
             } else {
                 prevState
             }
@@ -66,8 +72,8 @@ class HomePostsViewModel(
         _uiState.update { prevState ->
             if (prevState is HomeUiState.Success) {
                 HomeUiState.Success(
-                    prevState.posts.filter { it.id != data },
-                    prevState.newPosts.filter { it.id != data }
+                    prevState.posts.filter { it.id != data }.toImmutableList(),
+                    prevState.newPosts.filter { it.id != data }.toImmutableList()
                 )
             } else {
                 prevState
@@ -88,7 +94,10 @@ class HomePostsViewModel(
         viewModelScope.launch {
             _uiState.value =
                 try {
-                    HomeUiState.Success(postRepository.getPosts(), emptyList())
+                    HomeUiState.Success(
+                        postRepository.getPosts().map { it.toPostFeedItem() }.toImmutableList(),
+                        persistentListOf()
+                    )
                 } catch (_: IOException) {
                     HomeUiState.Error(FetchingError.NetworkError)
                 } catch (e: HttpException) {
@@ -108,8 +117,14 @@ class HomePostsViewModel(
             _uiState.update { prevState ->
                 if (prevState is HomeUiState.Success) {
                     try {
-                        val newPosts = postRepository.getPosts(prevState.posts.last().publishedAt)
-                        HomeUiState.Success(prevState.posts.plus(newPosts), prevState.newPosts)
+                        val newPosts =
+                            postRepository.getPosts(prevState.posts.last().data.publishedAt)
+                                .map { it.toPostFeedItem() }
+                        HomeUiState.Success(
+                            prevState.posts.plus(newPosts)
+                                .toImmutableList(),
+                            prevState.newPosts
+                        )
                     } catch (_: IOException) {
                         HomeUiState.Error(FetchingError.NetworkError)
                     } catch (e: HttpException) {
@@ -126,13 +141,12 @@ class HomePostsViewModel(
     fun resetNewPosts() {
         _uiState.update { prevState ->
             if (prevState is HomeUiState.Success)
-                HomeUiState.Success(prevState.posts, emptyList())
+                HomeUiState.Success(prevState.posts, persistentListOf())
             else prevState
         }
     }
 
     override fun onCleared() {
-        super.onCleared()
         mSocket.off(Constants.SocketEvents.ITEM_CREATE, onItemCreate)
         mSocket.off(Constants.SocketEvents.ITEM_UPDATE, onItemUpdate)
         mSocket.off(Constants.SocketEvents.ITEM_DELETE, onItemDelete)

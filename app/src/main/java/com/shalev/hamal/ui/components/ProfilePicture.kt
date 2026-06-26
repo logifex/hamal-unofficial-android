@@ -7,8 +7,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.dimensionResource
-import coil.compose.AsyncImage
+import coil3.compose.AsyncImage
 import com.shalev.hamal.R
+
+const val PROFILE_SIZE_PX = 100
 
 @Composable
 fun ProfilePicture(
@@ -17,7 +19,7 @@ fun ProfilePicture(
     description: String? = null
 ) {
     AsyncImage(
-        model = url,
+        model = "$url?width=$PROFILE_SIZE_PX",
         contentDescription = description,
         contentScale = ContentScale.Crop,
         modifier = modifier

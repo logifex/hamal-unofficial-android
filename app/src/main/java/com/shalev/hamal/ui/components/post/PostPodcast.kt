@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.media3.common.MediaItem
@@ -15,7 +14,6 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.shalev.hamal.ui.components.media.AudioPlayer
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -30,7 +28,6 @@ fun PostPodcast(
     var currentPosition by remember { mutableLongStateOf(0) }
     var isPlaying by remember { mutableStateOf(false) }
     var duration by remember { mutableLongStateOf(0) }
-    val coroutineScope = rememberCoroutineScope()
 
     DisposableEffect(shouldPlay, exoPlayer) {
         val listener = object : Player.Listener {
@@ -55,13 +52,9 @@ fun PostPodcast(
     }
 
     LaunchedEffect(isPlaying, exoPlayer) {
-        if (isPlaying) {
-            coroutineScope.launch {
-                while (isPlaying) {
-                    currentPosition = exoPlayer.currentPosition
-                    delay(100.milliseconds)
-                }
-            }
+        while (isPlaying) {
+            currentPosition = exoPlayer.currentPosition
+            delay(100.milliseconds)
         }
     }
 
@@ -69,15 +62,13 @@ fun PostPodcast(
         MediaItem.fromUri(url)
     }
 
-    LaunchedEffect(mediaSource, shouldPlay, exoPlayer) {
+    LaunchedEffect(shouldPlay, mediaSource, exoPlayer) {
         if (shouldPlay) {
-            launch {
-                exoPlayer.run {
-                    setMediaItem(mediaSource)
-                    prepare()
-                    volume = 1f
-                    playWhenReady = true
-                }
+            exoPlayer.run {
+                setMediaItem(mediaSource)
+                prepare()
+                volume = 1f
+                playWhenReady = true
             }
         } else {
             isPlaying = false
@@ -102,7 +93,7 @@ fun PostPodcast(
                 }
             }
         },
-        onPositionChanged = { exoPlayer.seekTo(it) },
+        onPositionChanged = { position -> exoPlayer.seekTo(position) },
         modifier = modifier
     )
 }
